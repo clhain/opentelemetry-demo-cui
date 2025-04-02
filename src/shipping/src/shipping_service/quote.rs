@@ -8,6 +8,7 @@ use log::info;
 use opentelemetry::{trace::get_active_span, KeyValue};
 use reqwest_middleware::ClientBuilder;
 use reqwest_tracing::{SpanBackendWithUrl, TracingMiddleware};
+use opentelemetry::{baggage::{Baggage, BaggageExt}, Context};
 
 #[derive(Debug, Default)]
 pub struct Quote {

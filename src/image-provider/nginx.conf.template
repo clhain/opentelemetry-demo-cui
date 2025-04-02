@@ -28,5 +28,16 @@ http {
 
         root /static;
         gzip_static on;
+
+        location / {
+            set $product_cui "";
+
+            # Extract 'productCui' from the baggage header if it exists
+            if ($http_baggage_productcui) {
+                set $product_cui $http_baggage_productcui;
+            }
+            # Add the productCui as a span attribute if it's available
+            otel_span_attr "product_cui" $product_cui;
+        }
     }
 }

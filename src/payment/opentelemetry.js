@@ -13,6 +13,9 @@ const {gcpDetector} = require('@opentelemetry/resource-detector-gcp')
 const {envDetector, hostDetector, osDetector, processDetector} = require('@opentelemetry/resources')
 const {RuntimeNodeInstrumentation} = require('@opentelemetry/instrumentation-runtime-node')
 
+const { BaggageSpanProcessor } = require('@uphold/opentelemetry-baggage-span-processor');
+const { trace } = require('@opentelemetry/api');
+
 const sdk = new opentelemetry.NodeSDK({
   traceExporter: new OTLPTraceExporter(),
   instrumentations: [
@@ -43,3 +46,6 @@ const sdk = new opentelemetry.NodeSDK({
 })
 
 sdk.start();
+const proxyTracerProvider = trace.getTracerProvider();
+const tracerProvider = proxyTracerProvider.getDelegate();
+tracerProvider.addSpanProcessor(new BaggageSpanProcessor());

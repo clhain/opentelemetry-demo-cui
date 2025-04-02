@@ -7,6 +7,7 @@ using Grpc.Core;
 using cart.cartstore;
 using OpenFeature;
 using Oteldemo;
+using OpenTelemetry;
 
 namespace cart.services;
 
@@ -31,6 +32,11 @@ public class CartService : Oteldemo.CartService.CartServiceBase
         activity?.SetTag("app.user.id", request.UserId);
         activity?.SetTag("app.product.id", request.Item.ProductId);
         activity?.SetTag("app.product.quantity", request.Item.Quantity);
+        var productCui = Baggage.GetBaggage("productCui");
+        if (!string.IsNullOrEmpty(productCui))
+        {
+            activity?.SetTag("productCui", productCui);  // Add as a span attribute
+        }
 
         try
         {
@@ -51,7 +57,11 @@ public class CartService : Oteldemo.CartService.CartServiceBase
         var activity = Activity.Current;
         activity?.SetTag("app.user.id", request.UserId);
         activity?.AddEvent(new("Fetch cart"));
-
+        var productCui = Baggage.GetBaggage("productCui");
+        if (!string.IsNullOrEmpty(productCui))
+        {
+            activity?.SetTag("productCui", productCui);  // Add as a span attribute
+        }
         try
         {
             var cart = await _cartStore.GetCartAsync(request.UserId);
@@ -77,6 +87,11 @@ public class CartService : Oteldemo.CartService.CartServiceBase
         var activity = Activity.Current;
         activity?.SetTag("app.user.id", request.UserId);
         activity?.AddEvent(new("Empty cart"));
+        var productCui = Baggage.GetBaggage("productCui");
+        if (!string.IsNullOrEmpty(productCui))
+        {
+            activity?.SetTag("productCui", productCui);  // Add as a span attribute
+        }
 
         try
         {

@@ -26,6 +26,7 @@
     "@opentelemetry/resources": "1.30.1",
     "@opentelemetry/sdk-metrics": "1.30.1",
     "@opentelemetry/sdk-node": "0.57.2",
+    "@uphold/opentelemetry-baggage-span-processor": "^1.1.0",
     "grpc-js-health-check": "1.2.2",
     "pino": "9.6.0",
     "simple-card-validator": "1.1.0",

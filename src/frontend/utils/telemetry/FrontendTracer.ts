@@ -11,6 +11,7 @@ import { SEMRESATTRS_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { SessionIdProcessor } from './SessionIdProcessor';
 import { detectResourcesSync } from '@opentelemetry/resources/build/src/detect-resources';
+import { BaggageSpanProcessor } from '@uphold/opentelemetry-baggage-span-processor';
 
 const {
   NEXT_PUBLIC_OTEL_SERVICE_NAME = '',
@@ -41,6 +42,7 @@ const FrontendTracer = async () => {
       ),
     ],
   });
+  provider.addSpanProcessor(new BaggageSpanProcessor());
 
   const contextManager = new ZoneContextManager();
 

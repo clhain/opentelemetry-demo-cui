@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use opentelemetry::trace::{FutureExt, SpanKind, TraceContextExt, Tracer};
-use opentelemetry::{global, propagation::Extractor, trace::Span, Context, KeyValue};
+use opentelemetry::{global,baggage::{Baggage, BaggageExt}, propagation::Extractor, trace::Span, Context, KeyValue};
 use opentelemetry_semantic_conventions as semconv;
 use shop::shipping_service_server::ShippingService;
 use shop::{GetQuoteRequest, GetQuoteResponse, Money, ShipOrderRequest, ShipOrderResponse};
-use tonic::{Request, Response, Status};
+use tonic::{Request, Response, Status, metadata::KeyAndValueRef};
 
 use log::*;
 
@@ -84,8 +84,13 @@ impl ShippingService for ShippingServer {
             "app.shipping.zip_code",
             request_message.address.unwrap().zip_code,
         ));
+        let baggage: &Baggage = parent_cx.baggage();
+        if let Some(product_cui) = baggage.get("productCui") {
+            // Add baggage item as an attribute to the span
+            span.set_attribute(KeyValue::new("productCui", product_cui.to_string()));
+        }
 
-        let cx = Context::current_with_span(span);
+        let cx = parent_cx.with_span(span);
         let q = match create_quote_from_count(itemct)
             .with_context(cx.clone())
             .await
@@ -133,6 +138,12 @@ impl ShippingService for ShippingServer {
         span.set_attribute(KeyValue::new(semconv::trace::RPC_SYSTEM, RPC_SYSTEM_GRPC));
         span.set_attribute(KeyValue::new(semconv::trace::RPC_SERVICE, RPC_SERVICE_SHIPPING));
         span.set_attribute(KeyValue::new(semconv::trace::RPC_METHOD, "ShipOrder"));
+
+        let baggage: &Baggage = parent_cx.baggage();
+        if let Some(product_cui) = baggage.get("productCui") {
+            // Add baggage item as an attribute to the span
+            span.set_attribute(KeyValue::new("productCui", product_cui.to_string()));
+        }
 
         span.add_event("Processing shipping order request".to_string(), vec![]);
 

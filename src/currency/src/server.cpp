@@ -10,6 +10,7 @@
 #include "opentelemetry/trace/context.h"
 #include "opentelemetry/trace/semantic_conventions.h"
 #include "opentelemetry/trace/span_context_kv_iterable_view.h"
+#include "opentelemetry/baggage/baggage_context.h"
 #include "opentelemetry/baggage/baggage.h"
 #include "opentelemetry/nostd/string_view.h"
 #include "logger_common.h"
@@ -127,6 +128,19 @@ class CurrencyService final : public oteldemo::CurrencyService::Service
 
     span->AddEvent("Processing supported currencies request");
 
+    // Couldn't make the built-in baggage from context work.
+    const auto& metadata = context->client_metadata();
+    auto baggage_iter = metadata.find("baggage");
+        if (baggage_iter != metadata.end()) {
+        const grpc::string_ref& baggage_value = baggage_iter->second;
+        opentelemetry::v1::nostd::string_view baggage_view(baggage_value.data(), baggage_value.size());
+        auto current_baggage = opentelemetry::baggage::Baggage::FromHeader(baggage_view);
+        std::string productCui;
+        if (current_baggage->GetValue("productCui", productCui)) {
+          span->SetAttribute("productCui", productCui);
+        }
+    }
+
     for (auto &code : currency_conversion) {
       response->add_currency_codes(code.first);
     }
@@ -185,6 +199,19 @@ class CurrencyService final : public oteldemo::CurrencyService::Service
                                        {SemanticConventions::kRpcGrpcStatusCode, 0}},
                                       options);
     auto scope = get_tracer("currency")->WithActiveSpan(span);
+
+    // Couldn't make the built-in baggage from context work.
+    const auto& metadata = context->client_metadata();
+    auto baggage_iter = metadata.find("baggage");
+    if (baggage_iter != metadata.end()) {
+        const grpc::string_ref& baggage_value = baggage_iter->second;
+        opentelemetry::v1::nostd::string_view baggage_view(baggage_value.data(), baggage_value.size());
+        auto current_baggage = opentelemetry::baggage::Baggage::FromHeader(baggage_view);
+        std::string productCui;
+        if (current_baggage->GetValue("productCui", productCui)) {
+          span->SetAttribute("productCui", productCui);
+        }
+    }
 
     span->AddEvent("Processing currency conversion request");
 

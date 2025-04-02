@@ -11,7 +11,7 @@ from concurrent import futures
 
 # Pip
 import grpc
-from opentelemetry import trace, metrics
+from opentelemetry import trace, metrics, baggage
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import (
     OTLPLogExporter,
@@ -43,6 +43,9 @@ class RecommendationService(demo_pb2_grpc.RecommendationServiceServicer):
     def ListRecommendations(self, request, context):
         prod_list = get_product_list(request.product_ids)
         span = trace.get_current_span()
+        cui = baggage.get_baggage("productCui")
+        if cui:
+            span.set_attribute("productCui", cui)
         span.set_attribute("app.products_recommended.count", len(prod_list))
         logger.info(f"Receive ListRecommendations for product ids:{prod_list}")
 

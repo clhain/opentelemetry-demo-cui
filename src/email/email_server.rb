@@ -20,8 +20,10 @@ post "/send_order_confirmation" do
 
   # get the current auto-instrumented span
   current_span = OpenTelemetry::Trace.current_span
+  product_cui = OpenTelemetry::Baggage.value('productCui')
   current_span.add_attributes({
     "app.order.id" => data.order.order_id,
+    "productCui" => product_cui||= '',
   })
 
   send_email(data)

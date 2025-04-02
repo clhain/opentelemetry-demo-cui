@@ -1,15 +1,21 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-use opentelemetry::{global, trace::TraceError};
+use opentelemetry::{global, trace::TraceError, propagation::TextMapCompositePropagator};
 use opentelemetry_otlp;
-use opentelemetry_sdk::{propagation::TraceContextPropagator, runtime, trace as sdktrace};
+use opentelemetry_sdk::{propagation::{TraceContextPropagator, BaggagePropagator}, runtime, trace as sdktrace};
 use tracing_subscriber::{layer::SubscriberExt, Registry};
 
 use super::get_resource_attr;
 
 pub fn init_tracer() -> Result<sdktrace::Tracer, TraceError> {
-    global::set_text_map_propagator(TraceContextPropagator::new());
+    let baggage_propagator = BaggagePropagator::new();
+    let trace_context_propagator = TraceContextPropagator::new();
+    let composite_propagator = TextMapCompositePropagator::new(vec![
+        Box::new(baggage_propagator),
+        Box::new(trace_context_propagator),
+    ]);
+    global::set_text_map_propagator(composite_propagator);
 
     opentelemetry_otlp::new_pipeline()
         .tracing()

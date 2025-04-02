@@ -114,15 +114,22 @@ processors:
 
 connectors:
   spanmetrics:
+    dimensions:
+      - name: productCui
+  servicegraph:
+    dimensions:
+      - productCui
+    store:
+      ttl: 5s
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [memory_limiter, transform, batch]
-      exporters: [otlp, debug, spanmetrics]
+      exporters: [otlp, debug, spanmetrics, servicegraph]
     metrics:
-      receivers: [hostmetrics, docker_stats, httpcheck/frontend-proxy, otlp, redis, spanmetrics]
+      receivers: [hostmetrics, docker_stats, httpcheck/frontend-proxy, otlp, redis, spanmetrics, servicegraph]
       processors: [memory_limiter, batch]
       exporters: [otlphttp/prometheus, debug]
     logs:

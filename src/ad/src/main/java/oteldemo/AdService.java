@@ -161,7 +161,9 @@ public final class AdService {
         MutableContext evaluationContext = new MutableContext();
         if (baggage != null) {
           final String sessionId = baggage.getEntryValue("session.id");
+          final String productCui = baggage.getEntryValue("productCui");
           span.setAttribute("session.id", sessionId);
+          span.setAttribute("productCui", productCui);
           evaluationContext.setTargetingKey(sessionId);
           evaluationContext.add("session", sessionId);
         } else {

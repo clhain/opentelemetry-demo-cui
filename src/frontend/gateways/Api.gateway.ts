@@ -6,6 +6,7 @@ import { IProductCart, IProductCartItem, IProductCheckout } from '../types/Cart'
 import request from '../utils/Request';
 import { AttributeNames } from '../utils/enums/AttributeNames';
 import SessionGateway from './Session.gateway';
+import CUIGateway from './Cui.gateway'
 import { context, propagation } from "@opentelemetry/api";
 
 const { userId } = SessionGateway.getSession();
@@ -100,6 +101,11 @@ const ApiGateway = new Proxy(Apis(), {
   get(target, prop, receiver) {
     const originalFunction = Reflect.get(target, prop, receiver);
 
+    let activeCui = ""
+    if (typeof window != 'undefined'){
+      activeCui = (typeof prop === 'string') ? CUIGateway.getCUI(prop) : ""
+    }
+
     if (typeof originalFunction !== 'function') {
       return originalFunction;
     }
@@ -107,7 +113,8 @@ const ApiGateway = new Proxy(Apis(), {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return function (...args: any[]) {
       const baggage = propagation.getActiveBaggage() || propagation.createBaggage();
-      const newBaggage = baggage.setEntry(AttributeNames.SESSION_ID, { value: userId });
+      const baggageWithSession = baggage.setEntry(AttributeNames.SESSION_ID, { value: userId });
+      const newBaggage = baggageWithSession.setEntry(AttributeNames.CUI, { value: activeCui });
       const newContext = propagation.setBaggage(context.active(), newBaggage);
       return context.with(newContext, () => {
         return Reflect.apply(originalFunction, undefined, args);

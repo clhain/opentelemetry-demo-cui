@@ -30,6 +30,11 @@ static_resources:
                         - name: envoy.tracers.opentelemetry.resource_detectors.environment
                           typed_config:
                             "@type": type.googleapis.com/envoy.extensions.tracers.opentelemetry.resource_detectors.v3.EnvironmentResourceDetectorConfig
+                  # There's probably a way to get the baggage value into metadata with filters, but just doing this for ease.
+                  custom_tags:
+                    - tag: productCui
+                      request_header:
+                        name: productCui
                 route_config:
                   name: local_route
                   virtual_hosts:

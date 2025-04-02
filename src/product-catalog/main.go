@@ -25,6 +25,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/baggage"
 	otelcodes "go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -79,8 +80,19 @@ func initResource() *sdkresource.Resource {
 	return resource
 }
 
+// CUIAnnotator is a SpanProcessor that adds CUI attributes to all started spans.
+type CUIAnnotator struct{}
+
+func (a CUIAnnotator) OnStart(c context.Context, s sdktrace.ReadWriteSpan) {
+	s.SetAttributes(attribute.String("productCui", cuiFromContext(c)))
+}
+func (a CUIAnnotator) Shutdown(context.Context) error   { return nil }
+func (a CUIAnnotator) ForceFlush(context.Context) error { return nil }
+func (a CUIAnnotator) OnEnd(s sdktrace.ReadOnlySpan)    {}
+
 func initTracerProvider() *sdktrace.TracerProvider {
 	ctx := context.Background()
+	a := CUIAnnotator{}
 
 	exporter, err := otlptracegrpc.New(ctx)
 	if err != nil {
@@ -89,6 +101,7 @@ func initTracerProvider() *sdktrace.TracerProvider {
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
 		sdktrace.WithResource(initResource()),
+		sdktrace.WithSpanProcessor(a),
 	)
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
@@ -261,6 +274,10 @@ func mustMapEnv(target *string, key string) {
 		log.Fatalf("Environment Variable Not Set: %q", key)
 	}
 	*target = value
+}
+
+func cuiFromContext(ctx context.Context) string {
+	return baggage.FromContext(ctx).Member("productCui").Value()
 }
 
 func (p *productCatalog) Check(ctx context.Context, req *healthpb.HealthCheckRequest) (*healthpb.HealthCheckResponse, error) {

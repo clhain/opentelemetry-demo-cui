@@ -5,7 +5,10 @@
 
 
 use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Baggage\Baggage;
 use OpenTelemetry\API\Trace\Span;
+use OpenTelemetry\SDK\Trace\Span as sdkSpan;
+use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\API\Trace\SpanKind;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -50,6 +53,14 @@ function calculateQuote($jsonObject): float
 
 return function (App $app) {
     $app->post('/getquote', function (Request $request, Response $response, LoggerInterface $logger) {
+
+        $propagator = \OpenTelemetry\API\Baggage\Propagation\BaggagePropagator::getInstance();
+        $context = $propagator->extract($request->getHeaders());
+        $baggage = Baggage::fromContext($context);  // Get the current baggage context
+        $cui = $baggage->getValue('productCui');
+        $s = $request->getAttribute(SpanInterface::class, null);
+        $s->setAttribute('productCui', $cui);
+
         $span = Span::getCurrent();
         $span->addEvent('Received get quote request, processing it');
 

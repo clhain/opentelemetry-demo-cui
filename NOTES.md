@@ -1,0 +1,1 @@
+- Using PRODUCT . CUI rather than PRODUCT/CUI because checkout service isn't properly url encoding the / and currency service doesn't parse it correctly.
