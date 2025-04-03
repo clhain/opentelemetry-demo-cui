@@ -48,7 +48,7 @@ logger_provider = LoggerProvider(resource=Resource.create(
 set_logger_provider(logger_provider)
 
 ATTRIBUTE_CUI = "productCui"
-PRODUCT_NAME = "DEMO_SHOP"
+PRODUCT_NAME = os.environ.get('PRODUCT_NAME', 'DEMO_SHOP')
 class CUINames(Enum):
     ADD_TO_CART = 'ADD_TO_CART'
     BROWSE = 'BROWSE'

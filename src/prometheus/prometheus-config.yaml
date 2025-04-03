@@ -6,6 +6,11 @@ global:
   scrape_timeout: 3s
   evaluation_interval: 30s
 
+rule_files:
+  - "/etc/prometheus/rules/anomoly_alerts.yaml"
+  - "/etc/prometheus/rules/anomoly_rules.yaml"
+  - "/etc/prometheus/rules/demo_rules.yaml"
+
 otlp:
   promote_resource_attributes:
     - service.instance.id

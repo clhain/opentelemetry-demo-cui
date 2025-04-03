@@ -11,7 +11,3 @@ export enum CUINames {
     CHECKOUT = 'CHECKOUT',
     UNKNOWN = 'UNKNOWN',
 }
-
-export enum ProductNames {
-    DEMO_SHOP = 'DEMO_SHOP'
-}

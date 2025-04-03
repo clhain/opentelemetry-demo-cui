@@ -1,0 +1,107 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 2,
+    "links": [],
+    "panels": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "webstore-metrics"
+        },
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 34,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 2,
+        "options": {
+          "edges": {},
+          "nodes": {},
+          "zoomMode": "cooperative"
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "webstore-metrics"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "sum(\n  label_replace(\n  label_join(\n    label_join(\n      sum(anomaly:all{anomaly_name=\"requests_with_cui\"}) by (client)\n      , \"id\", \"\", \"client\"\n    )\n    , \"title\", \"\", \"client\"\n  )\n  , \"icon\", \"cube\", \"\", \"\"\n)) without(client,server,anomaly_name,anomaly_select,anomaly_type)\nor\nsum(\n  label_replace(\n  label_join(\n    label_join(\n      sum(anomaly:all{anomaly_name=\"requests_with_cui\"}) by (server)\n      , \"id\", \"\", \"server\"\n    )\n    , \"title\", \"\", \"server\"\n  )\n  , \"icon\", \"cube\", \"\", \"\"\n)) without(client,server,anomaly_name,anomaly_select,anomaly_type)\n",
+            "format": "table",
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "nodes"
+          },
+          {
+            "datasource": {
+              "type": "prometheus",
+              "uid": "webstore-metrics"
+            },
+            "editorMode": "code",
+            "exemplar": false,
+            "expr": "# receivers -> processor\nsum(\nlabel_replace(\nlabel_join(\n    label_join(\n        label_join(\n            sum(anomaly:present{anomaly_name=\"requests_with_cui\"}) by (client, server)>=1,\n            \"source\", \"\", \"client\"\n        )\n        ,\"target\", \"\", \"server\"\n    )\n    , \"id\", \"-\", \"source\", \"target\"\n    )\n    , \"color\", \"red\", \"\", \"\"\n)) without(client,server)\nor\n# receivers -> processor\nsum(\nlabel_replace(\nlabel_join(\n    label_join(\n        label_join(\n            sum(anomaly:present{anomaly_name=\"requests_with_cui\"}) by (client, server)==0,\n            \"source\", \"\", \"client\"\n        )\n        ,\"target\", \"\", \"server\"\n    )\n    , \"id\", \"-\", \"source\", \"target\"\n    )\n    , \"color\", \"green\", \"\", \"\"\n)) without(client,server)",
+            "format": "table",
+            "hide": false,
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "edges"
+          }
+        ],
+        "title": "Panel Title",
+        "transformations": [
+          {
+            "id": "renameByRegex",
+            "options": {
+              "regex": "Value #nodes",
+              "renamePattern": "mainstat"
+            }
+          }
+        ],
+        "type": "nodeGraph"
+      }
+    ],
+    "preload": false,
+    "refresh": "",
+    "schemaVersion": 40,
+    "tags": [],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "New dashboard",
+    "uid": "cehqala86j6yod",
+    "version": 1,
+    "weekStart": ""
+  }
