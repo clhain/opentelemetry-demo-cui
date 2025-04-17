@@ -16,6 +16,7 @@ import { FlagdWebProvider } from '@openfeature/flagd-web-provider';
 declare global {
   interface Window {
     ENV: {
+      NEXT_PUBLIC_PRODUCT_NAME?: string;
       NEXT_PUBLIC_PLATFORM?: string;
       NEXT_PUBLIC_OTEL_SERVICE_NAME?: string;
       NEXT_PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT?: string;

@@ -45,6 +45,8 @@ def send_email(data)
       body:     erb(:confirmation, locals: { order: data.order }),
       via:      :test
     )
+    duration_ms = rand(10..20)
+    sleep(duration_ms / 1000.0)
     span.set_attribute("app.email.recipient", data.email)
     puts "Order confirmation email sent to: #{data.email}"
   end

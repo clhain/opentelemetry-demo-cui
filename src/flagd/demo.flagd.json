@@ -1,6 +1,16 @@
 {
   "$schema": "https://flagd.dev/schema/v0/flags.json",
   "flags": {
+    "productCatalogLatency": {
+      "description": "Add latency product catalog service on a specific CUI",
+      "state": "ENABLED",
+      "variants": {
+        "RED_SHOP.CHECKOUT": "RED_SHOP.CHECKOUT",
+        "BLUE_SHOP.CHECKOUT": "BLUE_SHOP.CHECKOUT",
+        "off": "NONEXISTANT"
+      },
+      "defaultVariant": "off"
+    },
     "productCatalogFailure": {
       "description": "Fail product catalog service on a specific product",
       "state": "ENABLED",
@@ -62,7 +72,7 @@
         "on": true,
         "off": false
       },
-      "defaultVariant": "on"
+      "defaultVariant": "off"
     },
     "paymentFailure": {
       "description": "Fail payment service charge requests n%",

@@ -51,7 +51,6 @@ services:
         condition: service_started
     logging: *logging
 
-  # Cart service
   cart:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-cart
     container_name: cart
@@ -82,7 +81,6 @@ services:
         condition: service_started
     logging: *logging
 
-  # Checkout service
   checkout:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-checkout
     container_name: checkout
@@ -161,7 +159,8 @@ services:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-email
     container_name: email
     build:
-      context: ./src/email
+      context: ./
+      dockerfile: ${EMAIL_DOCKERFILE}
       cache_from:
         - ${IMAGE_NAME}:${IMAGE_VERSION}-email
     deploy:
@@ -183,9 +182,9 @@ services:
     logging: *logging
 
   # Frontend
-  frontend:
+  frontend-red:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-frontend
-    container_name: frontend
+    container_name: frontend-red
     build:
       context: ./
       dockerfile: ${FRONTEND_DOCKERFILE}
@@ -197,11 +196,11 @@ services:
           memory: 250M
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT}"
+      - "${FRONTEND_PORT_RED}"
     environment:
       - PRODUCT_NAME=RED_SHOP
-      - PORT=${FRONTEND_PORT}
-      - FRONTEND_ADDR
+      - PORT=${FRONTEND_PORT_RED}
+      - FRONTEND_ADDR_RED
       - AD_ADDR
       - CART_ADDR
       - CHECKOUT_ADDR
@@ -215,7 +214,67 @@ services:
       - OTEL_SERVICE_NAME=frontend
       - PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
-      - WEB_OTEL_SERVICE_NAME=frontend-web
+      - WEB_OTEL_SERVICE_NAME=frontend-web-red
+      - OTEL_COLLECTOR_HOST
+      - FLAGD_HOST
+      - FLAGD_PORT
+    depends_on:
+      ad:
+        condition: service_started
+      cart:
+        condition: service_started
+      checkout:
+        condition: service_started
+      currency:
+        condition: service_started
+      product-catalog:
+        condition: service_started
+      quote:
+        condition: service_started
+      recommendation:
+        condition: service_started
+      shipping:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+      image-provider:
+        condition: service_started
+    logging: *logging
+
+  # Frontend
+  frontend-blue:
+    image: ${IMAGE_NAME}:${DEMO_VERSION}-frontend
+    container_name: frontend-blue
+    build:
+      context: ./
+      dockerfile: ${FRONTEND_DOCKERFILE}
+      cache_from:
+        - ${IMAGE_NAME}:${IMAGE_VERSION}-frontend
+    deploy:
+      resources:
+        limits:
+          memory: 250M
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT_BLUE}"
+    environment:
+      - PRODUCT_NAME=BLUE_SHOP
+      - PORT=${FRONTEND_PORT_BLUE}
+      - FRONTEND_ADDR_BLUE
+      - AD_ADDR
+      - CART_ADDR
+      - CHECKOUT_ADDR
+      - CURRENCY_ADDR
+      - PRODUCT_CATALOG_ADDR
+      - RECOMMENDATION_ADDR
+      - SHIPPING_ADDR
+      - OTEL_EXPORTER_OTLP_ENDPOINT
+      - OTEL_RESOURCE_ATTRIBUTES=${OTEL_RESOURCE_ATTRIBUTES}
+      - ENV_PLATFORM
+      - OTEL_SERVICE_NAME=frontend
+      - PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+      - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+      - WEB_OTEL_SERVICE_NAME=frontend-web-blue
       - OTEL_COLLECTOR_HOST
       - FLAGD_HOST
       - FLAGD_PORT
@@ -256,12 +315,17 @@ services:
     restart: unless-stopped
     ports:
       - "${ENVOY_PORT}:${ENVOY_PORT}"
+      - "${ENVOY_PORT_ALT}:${ENVOY_PORT_ALT}"
       - 10000:10000
     environment:
-      - FRONTEND_PORT
-      - FRONTEND_HOST
-      - LOCUST_WEB_HOST
-      - LOCUST_WEB_PORT
+      - FRONTEND_PORT_RED
+      - FRONTEND_HOST_RED
+      - FRONTEND_PORT_BLUE
+      - FRONTEND_HOST_BLUE
+      - LOCUST_WEB_HOST_RED
+      - LOCUST_WEB_HOST_BLUE
+      - LOCUST_WEB_PORT_RED
+      - LOCUST_WEB_PORT_BLUE
       - GRAFANA_PORT
       - GRAFANA_HOST
       - JAEGER_PORT
@@ -274,14 +338,17 @@ services:
       - OTEL_RESOURCE_ATTRIBUTES
       - OTEL_SERVICE_NAME=frontend-proxy
       - ENVOY_PORT
+      - ENVOY_PORT_ALT
       - FLAGD_HOST
       - FLAGD_PORT
       - FLAGD_UI_HOST
       - FLAGD_UI_PORT
     depends_on:
-      frontend:
+      frontend-red:
         condition: service_started
-      load-generator:
+      frontend-blue:
+        condition: service_started
+      load-generator-red:
         condition: service_started
       jaeger:
         condition: service_started
@@ -317,9 +384,9 @@ services:
     logging: *logging
 
   # Load Generator
-  load-generator:
+  load-generator-red:
     image: ${IMAGE_NAME}:${DEMO_VERSION}-load-generator
-    container_name: load-generator
+    container_name: load-generator-red
     build:
       context: ./
       dockerfile: ${LOAD_GENERATOR_DOCKERFILE}
@@ -331,25 +398,65 @@ services:
           memory: 120M
     restart: unless-stopped
     ports:
-      - "${LOCUST_WEB_PORT}"
+      - "${LOCUST_WEB_PORT_RED}"
     environment:
       - PRODUCT_NAME=RED_SHOP
-      - LOCUST_WEB_PORT
-      - LOCUST_USERS
-      - LOCUST_HOST
+      - LOCUST_WEB_PORT=${LOCUST_WEB_PORT_RED}
+      - LOCUST_USERS=3
+      - LOCUST_HOST=${LOCUST_HOST_RED}
       - LOCUST_HEADLESS
       - LOCUST_AUTOSTART
       - LOCUST_BROWSER_TRAFFIC_ENABLED=false
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_RESOURCE_ATTRIBUTES
-      - OTEL_SERVICE_NAME=load-generator
+      - OTEL_SERVICE_NAME=load-generator-red
       - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
       - LOCUST_WEB_HOST=0.0.0.0
       - FLAGD_HOST
       - FLAGD_OFREP_PORT
     depends_on:
-      frontend:
+      frontend-red:
+        condition: service_started
+      flagd:
+        condition: service_started
+    logging: *logging
+
+
+  # Load Generator
+  load-generator-blue:
+    image: ${IMAGE_NAME}:${DEMO_VERSION}-load-generator
+    container_name: load-generator-blue
+    build:
+      context: ./
+      dockerfile: ${LOAD_GENERATOR_DOCKERFILE}
+      cache_from:
+        - ${IMAGE_NAME}:${IMAGE_VERSION}-load-generator
+    deploy:
+      resources:
+        limits:
+          memory: 120M
+    restart: unless-stopped
+    ports:
+      - "${LOCUST_WEB_PORT_BLUE}"
+    environment:
+      - PRODUCT_NAME=BLUE_SHOP
+      - LOCUST_WEB_PORT=${LOCUST_WEB_PORT_BLUE}
+      - LOCUST_USERS=10
+      - LOCUST_HOST=${LOCUST_HOST_BLUE}
+      - LOCUST_HEADLESS
+      - LOCUST_AUTOSTART
+      - LOCUST_BROWSER_TRAFFIC_ENABLED=false
+      - OTEL_EXPORTER_OTLP_ENDPOINT
+      - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+      - OTEL_RESOURCE_ATTRIBUTES
+      - OTEL_SERVICE_NAME=load-generator-blue
+      - PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+      - LOCUST_WEB_HOST=0.0.0.0
+      - FLAGD_HOST
+      - FLAGD_OFREP_PORT
+    depends_on:
+      frontend-blue:
         condition: service_started
       flagd:
         condition: service_started

@@ -18,9 +18,179 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 2,
+    "id": 6,
     "links": [],
     "panels": [
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "webstore-metrics"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 0.01
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 10,
+          "w": 7,
+          "x": 0,
+          "y": 0
+        },
+        "id": 4,
+        "options": {
+          "displayMode": "basic",
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          },
+          "maxVizHeight": 300,
+          "minVizHeight": 16,
+          "minVizWidth": 8,
+          "namePlacement": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "showUnfilled": true,
+          "sizing": "auto",
+          "valueMode": "color"
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "disableTextWrap": false,
+            "editorMode": "builder",
+            "exemplar": false,
+            "expr": "sort_desc(avg by(productCui) (anomaly:present{productCui=~\"$productCui\", anomaly_name=\"$anomaly_name\"}))",
+            "fullMetaSearch": false,
+            "includeNullMetadata": true,
+            "instant": true,
+            "legendFormat": "__auto",
+            "range": false,
+            "refId": "A",
+            "useBackend": false
+          }
+        ],
+        "title": "CUI Abnormal Span Ratio",
+        "type": "bargauge"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "webstore-metrics"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisBorderShow": false,
+              "axisCenteredZero": false,
+              "axisColorMode": "text",
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "barWidthFactor": 0.6,
+              "drawStyle": "line",
+              "fillOpacity": 0,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "insertNulls": false,
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "auto",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 10,
+          "w": 17,
+          "x": 7,
+          "y": 0
+        },
+        "id": 3,
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": true
+          },
+          "tooltip": {
+            "hideZeros": false,
+            "mode": "single",
+            "sort": "none"
+          }
+        },
+        "pluginVersion": "11.5.2",
+        "targets": [
+          {
+            "editorMode": "code",
+            "expr": "sum(anomaly:select{anomaly_name=~\"$anomaly_name\",productCui=~\"$productCui\"}) without ( anomaly_select)",
+            "legendFormat": "{{productCui}} {{client}} -> {{server}} ({{anomaly_name}})",
+            "range": true,
+            "refId": "A"
+          }
+        ],
+        "title": "Anomaly Series",
+        "type": "timeseries"
+      },
       {
         "datasource": {
           "type": "prometheus",
@@ -34,7 +204,7 @@
           "h": 34,
           "w": 24,
           "x": 0,
-          "y": 0
+          "y": 10
         },
         "id": 2,
         "options": {
@@ -51,7 +221,7 @@
             },
             "editorMode": "code",
             "exemplar": false,
-            "expr": "sum(\n  label_replace(\n  label_join(\n    label_join(\n      sum(anomaly:all{anomaly_name=\"requests_with_cui\"}) by (client)\n      , \"id\", \"\", \"client\"\n    )\n    , \"title\", \"\", \"client\"\n  )\n  , \"icon\", \"cube\", \"\", \"\"\n)) without(client,server,anomaly_name,anomaly_select,anomaly_type)\nor\nsum(\n  label_replace(\n  label_join(\n    label_join(\n      sum(anomaly:all{anomaly_name=\"requests_with_cui\"}) by (server)\n      , \"id\", \"\", \"server\"\n    )\n    , \"title\", \"\", \"server\"\n  )\n  , \"icon\", \"cube\", \"\", \"\"\n)) without(client,server,anomaly_name,anomaly_select,anomaly_type)\n",
+            "expr": "sum(\n  label_replace(\n  label_join(\n    label_join(\n      sum(anomaly:all{anomaly_name=~\"$anomaly_name\",productCui=~\"$productCui\"}) by (client)\n      , \"id\", \"\", \"client\"\n    )\n    , \"title\", \"\", \"client\"\n  )\n  , \"icon\", \"cube\", \"\", \"\"\n)) without(client,server,anomaly_name,anomaly_select,anomaly_type)\nor\nsum(\n  label_replace(\n  label_join(\n    label_join(\n      sum(anomaly:all{anomaly_name=~\"$anomaly_name\",productCui=~\"$productCui\"}) by (server)\n      , \"id\", \"\", \"server\"\n    )\n    , \"title\", \"\", \"server\"\n  )\n  , \"icon\", \"cube\", \"\", \"\"\n)) without(client,server,anomaly_name,anomaly_select,anomaly_type)\n",
             "format": "table",
             "instant": true,
             "legendFormat": "__auto",
@@ -65,7 +235,7 @@
             },
             "editorMode": "code",
             "exemplar": false,
-            "expr": "# receivers -> processor\nsum(\nlabel_replace(\nlabel_join(\n    label_join(\n        label_join(\n            sum(anomaly:present{anomaly_name=\"requests_with_cui\"}) by (client, server)>=1,\n            \"source\", \"\", \"client\"\n        )\n        ,\"target\", \"\", \"server\"\n    )\n    , \"id\", \"-\", \"source\", \"target\"\n    )\n    , \"color\", \"red\", \"\", \"\"\n)) without(client,server)\nor\n# receivers -> processor\nsum(\nlabel_replace(\nlabel_join(\n    label_join(\n        label_join(\n            sum(anomaly:present{anomaly_name=\"requests_with_cui\"}) by (client, server)==0,\n            \"source\", \"\", \"client\"\n        )\n        ,\"target\", \"\", \"server\"\n    )\n    , \"id\", \"-\", \"source\", \"target\"\n    )\n    , \"color\", \"green\", \"\", \"\"\n)) without(client,server)",
+            "expr": "# receivers -> processor\nsum(\nlabel_replace(\nlabel_join(\n    label_join(\n        label_join(\n            sum(anomaly:present{anomaly_name=~\"$anomaly_name\",productCui=~\"$productCui\"}) by (client, server)>=1,\n            \"source\", \"\", \"client\"\n        )\n        ,\"target\", \"\", \"server\"\n    )\n    , \"id\", \"-\", \"source\", \"target\"\n    )\n    , \"color\", \"red\", \"\", \"\"\n)) without(client,server)\nor\n# receivers -> processor\nsum(\nlabel_replace(\nlabel_join(\n    label_join(\n        label_join(\n            sum(anomaly:present{anomaly_name=~\"$anomaly_name\",productCui=~\"$productCui\"}) by (client, server)==0,\n            \"source\", \"\", \"client\"\n        )\n        ,\"target\", \"\", \"server\"\n    )\n    , \"id\", \"-\", \"source\", \"target\"\n    )\n    , \"color\", \"green\", \"\", \"\"\n)) without(client,server)",
             "format": "table",
             "hide": false,
             "instant": true,
@@ -74,7 +244,7 @@
             "refId": "edges"
           }
         ],
-        "title": "Panel Title",
+        "title": "Spans With Anomaly",
         "transformations": [
           {
             "id": "renameByRegex",
@@ -92,7 +262,48 @@
     "schemaVersion": 40,
     "tags": [],
     "templating": {
-      "list": []
+      "list": [
+        {
+          "allValue": ".*",
+          "current": {
+            "text": "RED_SHOP.CHECKOUT",
+            "value": "RED_SHOP.CHECKOUT"
+          },
+          "definition": "label_values(anomaly:all,productCui)",
+          "includeAll": true,
+          "label": "CUI",
+          "name": "productCui",
+          "options": [],
+          "query": {
+            "qryType": 1,
+            "query": "label_values(anomaly:all,productCui)",
+            "refId": "PrometheusVariableQueryEditor-VariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        },
+        {
+          "allValue": ".*",
+          "current": {
+            "text": "latency_p95_with_cui",
+            "value": "latency_p95_with_cui"
+          },
+          "definition": "label_values(anomaly_name)",
+          "includeAll": true,
+          "label": "Type",
+          "name": "anomaly_name",
+          "options": [],
+          "query": {
+            "qryType": 1,
+            "query": "label_values(anomaly_name)",
+            "refId": "PrometheusVariableQueryEditor-VariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "type": "query"
+        }
+      ]
     },
     "time": {
       "from": "now-6h",
@@ -100,7 +311,7 @@
     },
     "timepicker": {},
     "timezone": "browser",
-    "title": "New dashboard",
+    "title": "Service Graph",
     "uid": "cehqala86j6yod",
     "version": 1,
     "weekStart": ""

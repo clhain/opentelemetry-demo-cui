@@ -42,7 +42,7 @@ from enum import Enum
 
 logger_provider = LoggerProvider(resource=Resource.create(
         {
-            "service.name": "load-generator",
+            "service.name": os.environ.get('OTEL_SERVICE_NAME', 'load-generator'),
         }
     ),)
 set_logger_provider(logger_provider)

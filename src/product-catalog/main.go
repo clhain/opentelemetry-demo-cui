@@ -303,6 +303,10 @@ func (p *productCatalog) GetProduct(ctx context.Context, req *pb.GetProductReque
 		attribute.String("app.product.id", req.Id),
 	)
 
+	if p.checkCUIAddLatency(ctx) {
+		time.Sleep(2000 * time.Millisecond)
+	}
+
 	// GetProduct will fail on a specific product when feature flag is enabled
 	if p.checkProductFailure(ctx, req.Id) {
 		msg := fmt.Sprintf("Error: Product Catalog Fail Feature Flag Enabled")
@@ -360,6 +364,15 @@ func (p *productCatalog) checkProductFailure(ctx context.Context, id string) boo
 		ctx, "productCatalogFailure", false, openfeature.EvaluationContext{},
 	)
 	return failureEnabled
+}
+
+func (p *productCatalog) checkCUIAddLatency(ctx context.Context) bool {
+	client := openfeature.NewClient("productCatalog")
+	addLatencyToCUI, _ := client.StringValue(
+		ctx, "productCatalogLatency", "NON_EXISTANT_CUI", openfeature.EvaluationContext{},
+	)
+	productCui := cuiFromContext(ctx)
+	return productCui == addLatencyToCUI
 }
 
 func createClient(ctx context.Context, svcAddr string) (*grpc.ClientConn, error) {

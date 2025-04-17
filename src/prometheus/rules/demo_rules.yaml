@@ -12,10 +12,10 @@ groups:
           anomaly_name: "requests_with_cui"
           anomaly_type: "requests"
 
-      - record: anomaly:request:latency:p95
-        expr: histogram_quantile(0.95, sum (label_replace(rate(traces_service_graph_request_client_seconds_bucket{server!="unknown",client!="unknown",server_productCui!=""}[5m]),"productCui", "$1", "server_productCui", "(.*)")) without(client_productCui,server_productCui,failed))
+      - record: anomaly:request:latency:p50
+        expr: histogram_quantile(0.50, sum (label_replace(rate(traces_service_graph_request_client_seconds_bucket{server!="unknown",client!="unknown",server_productCui!=""}[5m]),"productCui", "$1", "server_productCui", "(.*)")) without(client_productCui,server_productCui,failed))
         labels:
-          anomaly_name: "latency_p95_with_cui"
+          anomaly_name: "latency_p50_with_cui"
           anomaly_type: "latency"
 
       - record: anomaly:request:errors
@@ -40,10 +40,10 @@ groups:
           anomaly_name: "requests"
           anomaly_type: "requests"
 
-      - record: anomaly:request:latency:p95
-        expr: histogram_quantile(0.95, sum (rate(traces_service_graph_request_client_seconds_bucket{server!="unknown",client!="unknown",server_productCui!=""}[5m])) without(client_productCui,server_productCui,failed))
+      - record: anomaly:request:latency:p50
+        expr: histogram_quantile(0.50, sum (rate(traces_service_graph_request_client_seconds_bucket{server!="unknown",client!="unknown",server_productCui!=""}[5m])) without(client_productCui,server_productCui,failed))
         labels:
-          anomaly_name: "latency_p95"
+          anomaly_name: "latency_p50"
           anomaly_type: "latency"
 
       - record: anomaly:request:errors

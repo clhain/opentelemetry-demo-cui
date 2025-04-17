@@ -8,9 +8,17 @@ const opentelemetry = require('@opentelemetry/api')
 const charge = require('./charge')
 const logger = require('./logger')
 
+function randomSleep() {
+  return new Promise(resolve => {
+    const duration = Math.floor(Math.random() * 10)+10
+    setTimeout(resolve, duration); // Sleep for the random duration
+  });
+}
+
 async function chargeServiceHandler(call, callback) {
   const span = opentelemetry.trace.getActiveSpan();
-
+  // inject some random latency
+  await randomSleep();
   try {
     const amount = call.request.amount
     span.setAttributes({

@@ -113,14 +113,14 @@ processors:
           - replace_match(name, "GET /api/products/*", "GET /api/products/{productId}")
 
 connectors:
-  spanmetrics:
-    dimensions:
-      - name: productCui
   servicegraph:
     dimensions:
       - productCui
     store:
       ttl: 5s
+  spanmetrics:
+    dimensions:
+      - name: productCui
 
 service:
   pipelines:

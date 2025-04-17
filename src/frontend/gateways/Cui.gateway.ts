@@ -5,25 +5,26 @@ import { useRouter } from 'next/router';
 import { CUINames } from '../utils/enums/Cui';
 
 
-const { PRODUCT_NAME = 'DEMO_SHOP' } = process.env;
-const defaultCui = `${PRODUCT_NAME}/${CUINames.UNKNOWN}`
+const {
+  NEXT_PUBLIC_PRODUCT_NAME = 'DEMO_SHOP',
+} = typeof window !== 'undefined' ? window.ENV : {};
+const defaultCui = `${NEXT_PUBLIC_PRODUCT_NAME}/${CUINames.UNKNOWN}`
 
 
 /**
  * Guess at a CUI based on the broser path and /or API Call being made.
  */
 const guessCui = (path: string, apiName: string) => {
-  const cuiPrefix = "demo_shop/"
   // Process CUIs that map directly to a specific API Call
   switch (apiName) {
     case "addCartItem": {
-      return `${PRODUCT_NAME}.${CUINames.ADD_TO_CART}`
+      return `${NEXT_PUBLIC_PRODUCT_NAME}.${CUINames.ADD_TO_CART}`
     }
     case "emptyCart": {
-      return `${PRODUCT_NAME}.${CUINames.EMPTY_CART}`
+      return `${NEXT_PUBLIC_PRODUCT_NAME}.${CUINames.EMPTY_CART}`
     }
     case "placeOrder": {
-      return `${PRODUCT_NAME}.${CUINames.CHECKOUT}`
+      return `${NEXT_PUBLIC_PRODUCT_NAME}.${CUINames.CHECKOUT}`
     }
     default: {
       break
@@ -32,10 +33,10 @@ const guessCui = (path: string, apiName: string) => {
   // Process CUIs by exact url path
   switch (path) {
     case "/": {
-      return `${PRODUCT_NAME}.${CUINames.BROWSE}` 
+      return `${NEXT_PUBLIC_PRODUCT_NAME}.${CUINames.BROWSE}` 
     }
     case "/cart": {
-      return `${PRODUCT_NAME}.${CUINames.VIEW_CART}` 
+      return `${NEXT_PUBLIC_PRODUCT_NAME}.${CUINames.VIEW_CART}` 
     }
     default: {
       break
@@ -44,17 +45,17 @@ const guessCui = (path: string, apiName: string) => {
 
   // Process CUIs with dynamic url paths
   if(path.startsWith('/cart/checkout/')){
-    return `${PRODUCT_NAME}.${CUINames.VIEW_ORDER}` 
+    return `${NEXT_PUBLIC_PRODUCT_NAME}.${CUINames.VIEW_ORDER}` 
   }
   // Process CUIs with dynamic url paths
   if(path.startsWith('/cart/checkout/')){
-    return `${PRODUCT_NAME}.${CUINames.VIEW_ORDER}` 
+    return `${NEXT_PUBLIC_PRODUCT_NAME}.${CUINames.VIEW_ORDER}` 
   }
   if(path.startsWith('/product/')){
-    return `${PRODUCT_NAME}.${CUINames.VIEW_ITEM}` 
+    return `${NEXT_PUBLIC_PRODUCT_NAME}.${CUINames.VIEW_ITEM}` 
   }
   
-  return `${PRODUCT_NAME}.${CUINames.UNKNOWN}` 
+  return `${NEXT_PUBLIC_PRODUCT_NAME}.${CUINames.UNKNOWN}` 
 }
 
 

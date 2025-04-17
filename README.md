@@ -1,14 +1,50 @@
 <!-- markdownlint-disable-next-line -->
-# <img src="https://opentelemetry.io/img/logos/opentelemetry-logo-nav.png" alt="OTel logo" width="45"> OpenTelemetry Demo
+# <img src="https://opentelemetry.io/img/logos/opentelemetry-logo-nav.png" alt="OTel logo" width="45"> OpenTelemetry Demo With Critical User Interactions
 
-[![Slack](https://img.shields.io/badge/slack-@cncf/otel/demo-brightgreen.svg?logo=slack)](https://cloud-native.slack.com/archives/C03B4CWV4DA)
-[![Version](https://img.shields.io/github/v/release/open-telemetry/opentelemetry-demo?color=blueviolet)](https://github.com/open-telemetry/opentelemetry-demo/releases)
-[![Commits](https://img.shields.io/github/commits-since/open-telemetry/opentelemetry-demo/latest?color=ff69b4&include_prereleases)](https://github.com/open-telemetry/opentelemetry-demo/graphs/commit-activity)
-[![Downloads](https://img.shields.io/docker/pulls/otel/demo)](https://hub.docker.com/r/otel/demo)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?color=red)](https://github.com/open-telemetry/opentelemetry-demo/blob/main/LICENSE)
-[![Integration Tests](https://github.com/open-telemetry/opentelemetry-demo/actions/workflows/run-integration-tests.yml/badge.svg)](https://github.com/open-telemetry/opentelemetry-demo/actions/workflows/run-integration-tests.yml)
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/opentelemetry-demo)](https://artifacthub.io/packages/helm/opentelemetry-helm/opentelemetry-demo)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9247/badge)](https://www.bestpractices.dev/en/projects/9247)
+## Background
+This is a fork of the opentelemetry-demo which implements "Critical User Interactions",
+a technique [published by Google](https://www.tdcommons.org/dpubs_series/6283/) for
+helping address common challenges with large-scale distributed systems.
+
+In this fork:
+
+1. Baggage propagation has been added (hastily, not intended as a reference implementation) to all services used in the
+  minimal version (docker-compose.minimal.yml).
+2. The compose file was refactored to start 2 instances of the frontend service (red shop and
+  blue shop), representing tenants in an ecommerce platform.
+3. Critical User Interactions (e.g. RED_SHOP/BROWSE, BLUE_SHOP/CHECKOUT) are added to baggage
+  headers in the frontend and load generator.
+4. Grafana [PromQL Anomaly Detection](https://github.com/grafana/promql-anomaly-detection) rules added
+  for all service graph metrics (with and without the critical user interaction dimension)
+5. Quick demo dashboards and flagd variable to introduce latency to specific CUIs added.
+
+The basic narrative is:
+
+1. Service graph based metrics and automated anomaly detection are awesome.
+2. They sometimes miss more obscure problems, and can be hard for operators to reason about.
+3. By adding CUI as a dimension to these metrics, you can set better baselines and make it easier for operators
+  to quickly identify "what's broken" in simple terms.
+
+To run the demo:
+
+```
+docker compose -f docker-compose.minimal.yml up -d
+```
+* <wait ~10-20 minutes to allow baselines to establish (or longer for better accuracy)>
+* visit http://localhost:8080/feature and enable productCatalogLatency for RED_SHOP.CHECKOUT
+* <wait ~3 minutes for the anomaly detection to pick up the issue>
+* visit http://localhost:8080/grafana
+  * Show the Anomalies dashboard with:
+    * ProductCUI=All, Server=ProductCatalog, Client=checkout, anomaly_name='latency_p50' - no problem detected
+  * Then show:
+    * ProductCUI=RED_SHOP.CHECKOUT, Server=ProductCatalog, Client=checkout, anomaly_name='latency_p50_with_cui' - big problem detected
+  * Switch to the Service Graph dashboard:
+    * Show CUI=All, Type=latency_p50 - no problems detected, large service graph
+    * Show CUI=All, Type=latency_p50_with_cui - problems detected with RED_SHOP.CHECKOUT in upper right table, easily identifyable
+    * Show CUI=RED_SHOP.CHECKOUT, Type=latency_p50_with_cui - problems accurately highlighted for this flow, only services in this flow displayed
+    * Show CUI=BLUE_SHOP.CHECKOUT, Type=latency_p50_with_cui - no problems detected (correctly), only blue shop services in this flow displayed
+
+The remainder of this Readme is from the upstream project.
 
 ## Welcome to the OpenTelemetry Astronomy Shop Demo
 
